@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String         @id @default(uuid())
+  name        String
+  email       String         @unique()
+  password    String
+  profile_pic String?
+  followers   Int            @default(0)
+  following   Int            @default(0)
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+  post        Post[]
+  like        Like[]
+  pinPost     PinPostModel[]
+}
+
+model Post {
+  id             String         @id @default(uuid())
+  title          String
+  description    String
+  media          String?
+  category_model Category?      @relation(fields: [category], references: [category], onDelete: Cascade)
+  category       String?
+  user           User?          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id        String
+  type           String?
+  like_count     Int            @default(0)
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  like           Like[]
+  pinPost        PinPostModel[]
+}
+
+model Like {
+  id         String   @id @default(uuid())
+  user       User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id    String
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  post_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Follow {
+  id           String   @id @default(uuid())
+  follower_id  String?
+  following_id String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model PinPostModel {
+  id         String   @id @default(uuid())
+  post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  post_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Category {
+  id         String   @id @default(uuid())
+  category   String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  post       Post[]
+}
